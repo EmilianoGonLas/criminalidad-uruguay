@@ -4,6 +4,8 @@ App Shiny para analizar **estadísticas de criminalidad en Uruguay** con datos
 oficiales del **Ministerio del Interior (AECA)** — Sistema de Gestión de
 Seguridad Pública (SGSP), cobertura nacional desde 2013.
 
+🔗 **App en vivo:** https://emilianogonzalez.shinyapps.io/Denuncias/
+
 ![Captura de la app](captura.png)
 
 ## Secciones
