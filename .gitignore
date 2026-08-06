@@ -1,0 +1,17 @@
+# --- R ---
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+*.Rproj
+
+# --- shinyapps / rsconnect ---
+rsconnect/
+
+# --- datos pesados ---
+# El CSV de delitos (~347 MB, 2.4M registros) NO entra en GitHub (límite 100 MB).
+# Se baja de datos abiertos del Ministerio del Interior (AECA). Ver README.
+data/*.csv
+
+# --- temporales ---
+*.bak
