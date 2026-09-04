@@ -196,7 +196,11 @@ mod_delitos_server <- function(id) {
 
     output$plot_heatmap <- renderPlotly({
       d <- datos_filtrados()
-      d <- d[HORA != "SIN DATO" & !is.na(HORA_NUM)]
+      # Ojo: esto se queda con menos de la mitad de las denuncias. Al hurto se
+      # lo descubre despues y la victima no sabe cuando ocurrio, asi que no
+      # registra hora en el 88% de los casos, y el abigeato en el 100%. Lo que
+      # se ve aca es sobre todo rapina, lesiones y violencia domestica.
+      d <- d[!is.na(HORA_NUM)]
       if (nrow(d) == 0) return(plotly_empty())
 
       # Normalizar día de la semana para coincidir con la lista fija global
@@ -211,6 +215,8 @@ mod_delitos_server <- function(id) {
               colorscale = "Blues",
               hovertemplate = "Día: %{y}<br>Hora: %{x}:00<br>Eventos: %{z:,.0f}<extra></extra>") %>%
         layout(
+          title = list(text = "Solo denuncias con hora registrada (rapina, lesiones y violencia domestica, sobre todo)",
+                       font = list(size = 12, color = font_color_dark)),
           xaxis = list(title = "Hora del día", dtick = 1,
                        tickvals = 0:23, ticktext = paste0(0:23, "h"), gridcolor = "transparent", zerolinecolor = "transparent"),
           yaxis = list(title = "", gridcolor = "transparent", zerolinecolor = "transparent"),

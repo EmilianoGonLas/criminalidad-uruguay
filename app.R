@@ -10,6 +10,7 @@ source("global.R", encoding = "UTF-8")
 source("R/mod_delitos.R", encoding = "UTF-8")
 source("R/mod_homicidios.R", encoding = "UTF-8")
 source("R/mod_comparativa.R", encoding = "UTF-8")
+source("R/mod_seccionales.R", encoding = "UTF-8")
 
 # ============================================================
 # INTERFAZ DE USUARIO PRINCIPAL
@@ -112,6 +113,13 @@ ui <- page_navbar(
     mod_comparativa_ui("comparativa")
   ),
 
+  # Pestaña Principal 4 — el nivel geográfico más fino de la fuente
+  nav_panel(
+    title = "Seccionales Policiales",
+    icon = icon("map-location-dot"),
+    mod_seccionales_ui("seccionales")
+  ),
+
   # Espacio y Footer
   nav_spacer(),
   nav_item(
@@ -132,6 +140,7 @@ server <- function(input, output, session) {
   mod_delitos_server("delitos")
   mod_homicidios_server("homicidios")
   mod_comparativa_server("comparativa")
+  mod_seccionales_server("seccionales")
   
 }
 

@@ -8,10 +8,24 @@
 # --- shinyapps / rsconnect ---
 rsconnect/
 
-# --- datos pesados ---
-# El CSV de delitos (~347 MB, 2.4M registros) NO entra en GitHub (límite 100 MB).
-# Se baja de datos abiertos del Ministerio del Interior (AECA). Ver README.
+# --- datos crudos pesados ---
+# otros-delitos.csv (376 MB) no entra en GitHub. Se baja del catálogo de datos
+# abiertos y se convierte con scripts/02_preparar_datos_app.R. Ver README.
 data/*.csv
+
+# Los derivados de data/app/ (~20 MB) SÍ se versionan: son lo que despliega
+# la app y lo que la hace reproducible sin bajar 376 MB.
+!data/app/*
+
+# El KML y el .rar son redundantes con el shapefile.
+data/seccionales_shp/*.kml
+data/seccionales_shp/*.rar
+
+# La geometría sin simplificar sólo se usa para cálculos puntuales.
+data/app/seccionales_full.rds
 
 # --- temporales ---
 *.bak
+
+# El PDF de seccionales de Montevideo pesa 78 MB: queda local.
+docs/*.pdf
