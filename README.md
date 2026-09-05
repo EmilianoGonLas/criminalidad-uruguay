@@ -69,11 +69,7 @@ Seis vistas sobre las mismas 280 unidades, con filtros de período (2013 al
 columna `JURISDICCION` de la fuente:** tiene sólo 33 valores distintos para 280
 seccionales, porque `SECCIONAL 10` existe en casi todos los departamentos.
 
-La otra trampa es que **el shapefile oficial escribe `TACUEREMBO`**. Sin
-corregirlo, Tacuarembó entero queda sin cruzar —unos 45.000 eventos— y el mapa lo
-dibuja vacío sin dar ningún error.
-
-Corregidas las dos, cruza el **99,62%** de los eventos y las 280 seccionales
+Corregidas, cruza el **99,62%** de los eventos y las 280 seccionales
 tienen datos. El 0,38% restante es jurisdicción no territorial (Prefectura,
 Policía Marítima, Sin Clasificar): no tiene polígono ni debería tenerlo.
 
