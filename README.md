@@ -1,63 +1,77 @@
 # criminalidad-uruguay
 
-App Shiny para analizar **estadísticas de criminalidad en Uruguay** con datos
+App Shiny para explorar las **estadísticas de criminalidad de Uruguay** con datos
 oficiales del **Ministerio del Interior (AECA)** — Sistema de Gestión de
-Seguridad Pública (SGSP), cobertura nacional desde 2013.
+Seguridad Pública (SGSP). 2,5 millones de denuncias, de enero de 2013 al último
+trimestre cerrado.
 
 🔗 **App en vivo:** https://emilianogonzalez.shinyapps.io/Denuncias/
 
-![Captura de la app](captura.png)
+## El detalle que la fuente publica y casi nadie usa
+
+Los datos de criminalidad se suelen mirar por departamento, y el departamento es
+una unidad demasiado grande: Montevideo entero pintado de un color no dice nada
+sobre dónde pasan las cosas. La fuente en realidad trae la **seccional policial**,
+sólo que como texto. Esta app le pone la geometría oficial encima: **280
+seccionales en vez de 19 departamentos.**
+
+![Las 280 seccionales cambiando de delito](docs/img/seccionales.gif)
+
+El ejemplo más claro es el **abigeato**, porque rompe el reflejo de leer todo mapa
+de delito como un mapa de densidad de población:
+
+| Delito | Denuncias | Son de Montevideo |
+|---|---:|---:|
+| Hurto | 1.549.798 | 47,9% |
+| Rapiña | 299.288 | **81,0%** |
+| Violencia doméstica | 479.913 | 34,3% |
+| Lesiones | 151.367 | 37,8% |
+| Abigeato | 19.148 | **1,6%** |
+
+La seccional con más hurtos tiene 58.698 denuncias y está en Montevideo; la que
+encabeza abigeato tiene 380 y está en Sauce. Cuando cambiás el delito, el mapa se
+da vuelta.
+
+![Abigeato por seccional: se prende el interior](docs/img/seccionales-abigeato.png)
 
 ## Secciones
 
 1. **Delitos generales** — evolución anual por tipo de delito (hurto, rapiña,
    violencia doméstica, lesiones, abigeato), ranking departamental, heatmap
    día×hora, tabla agregada. Filtros por año, tipo, departamento y tentativa.
-2. **Homicidios dolosos** — evolución + tasa de esclarecimiento, distribución por
-   motivo / arma / edad / relación víctima-agresor. Filtros por año, depto,
-   motivo, sexo y arma.
+2. **Homicidios dolosos** — evolución y tasa de esclarecimiento, distribución por
+   motivo, arma, edad y relación víctima-agresor.
 3. **Comparativa departamental** — mapa coroplético y ranking por indicador.
-4. **Seccionales policiales** — el nivel geográfico más fino que publica la
-   fuente: 280 seccionales contra 19 departamentos. Mapa con escala por
-   cuantiles, ranking, evolución mensual, heatmap día×hora, barrios de
-   Montevideo y tabla descargable.
+4. **Seccionales policiales** — el nivel geográfico más fino de la fuente. Ver
+   abajo.
 
-UI con `bslib` (`page_navbar`, tema oscuro), gráficos `plotly`, tablas `DT`,
-mapas `leaflet`.
+![Delitos generales](docs/img/delitos-generales.png)
 
-## Los datos: por qué la app no lee el CSV crudo
+## La pestaña de seccionales
 
-El CSV de denuncias pesa **376 MB** (2,5 M de eventos). Cargarlo en cada arranque
-era lento y obligaba a subirlo entero a shinyapps.io.
+![Mapa por seccional](docs/img/seccionales-mapa.png)
 
-`scripts/02_preparar_datos_app.R` lo convierte una sola vez a parquet **evento a
-evento, sin perder ninguna columna**: 2,5 M de filas entran en 13 MB. Se conserva
-el detalle completo —fecha exacta, hora, seccional policial, barrio— y el bundle
-del deploy baja a ~20 MB.
+Seis vistas sobre las mismas 280 unidades, con filtros de período (2013 al
+último trimestre), tipo de delito, departamento y tentativa:
 
-| | Crudo | En `data/app/` |
-|---|---|---|
-| Denuncias | 376 MB · 2,5 M eventos | 12,8 MB (parquet) |
-| Homicidios | 430 KB (xlsx) | 0,09 MB |
-| Seccionales | 9,2 MB (shapefile) | 1,10 MB (simplificado a 25 m) |
-| Departamentos | — | 1,37 MB (disueltos de las seccionales) |
+| Vista | Qué muestra |
+|---|---|
+| **Mapa** | Coroplético con escala por octiles. Lineal no sirve: tres seccionales de Montevideo aplastan al resto del país. |
+| **Ranking** | Las 30 seccionales con más denuncias, con nombre y departamento. |
+| **Evolución** | Serie mensual por tipo de delito. |
+| **Día × hora** | Heatmap, restringido a los delitos que registran hora (ver abajo). |
+| **Barrios de Montevideo** | Los 30 barrios con más denuncias. |
+| **Tabla** | Una fila por seccional, columnas por delito, descargable en CSV. |
 
-En memoria son unos 150 MB, holgado para el plan de shinyapps.io.
+### Cómo se identifica una seccional
 
-Los departamentos se disuelven del propio shapefile de seccionales, así la app
-ya no depende de `rnaturalearth` — `rnaturalearthhires` no está en CRAN y era un
-riesgo de deploy.
+`sec_id` = departamento + número, por ejemplo `ARTIGAS|1`. **No alcanza con la
+columna `JURISDICCION` de la fuente:** tiene sólo 33 valores distintos para 280
+seccionales, porque `SECCIONAL 10` existe en casi todos los departamentos.
 
-## Dos trampas de la fuente
-
-**1. `JURISDICCION` no identifica una seccional.** Tiene sólo 33 valores
-distintos para 280 seccionales: `SECCIONAL 10` existe en casi todos los
-departamentos. La clave real es departamento + número (`sec_id`, como
-`ARTIGAS|1`).
-
-**2. El shapefile oficial escribe `TACUEREMBO`.** Sin corregirlo, Tacuarembó
-entero queda sin cruzar —unos 45.000 eventos— y el mapa lo dibuja vacío sin dar
-ningún error.
+La otra trampa es que **el shapefile oficial escribe `TACUEREMBO`**. Sin
+corregirlo, Tacuarembó entero queda sin cruzar —unos 45.000 eventos— y el mapa lo
+dibuja vacío sin dar ningún error.
 
 Corregidas las dos, cruza el **99,62%** de los eventos y las 280 seccionales
 tienen datos. El 0,38% restante es jurisdicción no territorial (Prefectura,
@@ -68,35 +82,53 @@ Policía Marítima, Sin Clasificar): no tiene polígono ni debería tenerlo.
 La hora falta en el 55% de las denuncias, pero **no al azar**:
 
 | Delito | Sin hora |
-|---|---|
+|---|---:|
 | Rapiña · Lesiones · Violencia doméstica | 0% |
 | Hurto | 87,9% |
 | Abigeato | 100% |
 
 Es estructural: al hurto se lo descubre después y la víctima no sabe cuándo
-ocurrió. Los dos heatmaps de la app lo dicen explícitamente, y el de la pestaña
-de seccionales directamente excluye hurto y abigeato.
+ocurrió. Los heatmaps de la app lo dicen explícitamente, y el de seccionales
+directamente excluye hurto y abigeato.
 
 ## Otras advertencias
 
-- **Son conteos, no tasas.** La fuente no publica población por seccional, así
-  que no hay denominador. A nivel departamento sí se podría con el censo.
-- **El último año está incompleto.** Los datos llegan al último trimestre
-  cerrado; la app lo avisa en la barra lateral.
+- **Son conteos, no tasas.** La fuente no publica población por seccional.
+- **El último año está incompleto**: los datos llegan al último trimestre
+  cerrado. La app lo avisa en la barra lateral.
 - **El barrio sólo existe para Montevideo.**
 
-## Datos (`data/`)
+## Los datos: por qué la app no lee el CSV crudo
 
-| Archivo | Versionado |
-|---|---|
-| `app/*.parquet`, `app/*.rds` | sí — es lo que despliega la app |
-| `homicidios_dolosos_consumados.xlsx` | sí |
-| `seccionales_shp/` (shapefile) | sí (el KML y el .rar, no) |
-| `otros-delitos.csv` (376 MB) | **no** — ver abajo |
+El CSV de denuncias pesa **376 MB**. `scripts/02_preparar_datos_app.R` lo
+convierte una sola vez a parquet **evento a evento, sin perder ninguna columna**:
+2,5 M de filas entran en 13 MB. Se conserva el detalle completo —fecha exacta,
+hora, seccional, barrio— y el bundle del deploy baja a ~20 MB.
 
-El crudo se baja del [catálogo de datos abiertos](https://catalogodatos.gub.uy/dataset/ministerio-del-interior-delitos_denunciados_en_el_uruguay),
-recurso *Denuncias de otros delitos (CSV)*, y se deja en `data/otros-delitos.csv`.
-Va separado por `;` con BOM UTF-8. El dataset se actualiza **trimestralmente**.
+| | Crudo | En `data/app/` |
+|---|---|---|
+| Denuncias | 376 MB · 2,5 M eventos | 12,8 MB (parquet) |
+| Homicidios | 430 KB (xlsx) | 0,09 MB |
+| Seccionales | 9,2 MB (shapefile) | 1,10 MB (simplificado a 25 m) |
+| Departamentos | — | 1,37 MB (disueltos de las seccionales) |
+
+En memoria son unos 150 MB, holgado para el plan de shinyapps.io. Los
+departamentos se disuelven del propio shapefile de seccionales, así la app no
+depende de `rnaturalearth` — `rnaturalearthhires` no está en CRAN y era un riesgo
+de deploy.
+
+El mapa base es **Esri Dark Gray Canvas**, no CARTO: CARTO pasó a exigir API key
+en todos sus hosts y devolvía las tiles con un `API KEY REQUIRED` estampado
+encima.
+
+### De dónde salen los datos crudos
+
+Del [catálogo de datos abiertos](https://catalogodatos.gub.uy/dataset/ministerio-del-interior-delitos_denunciados_en_el_uruguay),
+que se actualiza **trimestralmente**:
+
+- *Denuncias de otros delitos (CSV)* → `data/otros-delitos.csv` (no versionado,
+  separado por `;` con BOM UTF-8)
+- *Homicidios dolosos consumados (XLSX)* → `data/homicidios_dolosos_consumados.xlsx`
 
 Cobertura actual: denuncias hasta el **30/06/2026**, homicidios hasta **2026**.
 
@@ -108,6 +140,7 @@ shiny::runApp()     # desde la raíz del proyecto
 
 ```bash
 Rscript scripts/02_preparar_datos_app.R   # sólo si cambiaron los datos crudos
+Rscript scripts/03_gif_seccionales.R      # regenera el GIF de arriba
 Rscript deploy.R                          # publica en shinyapps.io
 ```
 
@@ -117,9 +150,14 @@ Rscript deploy.R                          # publica en shinyapps.io
 app.R                  UI + server (navbar de 4 secciones)
 global.R               carga los parquet y la geometría al iniciar
 R/                     módulos: delitos, homicidios, comparativa, seccionales
-scripts/               02_preparar_datos_app.R — crudo → parquet
+scripts/               02 crudo → parquet · 03 GIF de portada
 data/app/              lo que carga y despliega la app
 data/seccionales_shp/  shapefile oficial (EPSG:32721)
+docs/img/              capturas y GIF del README
 qgis/                  proyecto QGIS con el shape y el KML
-docs/                  especificación + PDF de seccionales de Montevideo
 ```
+
+---
+
+Fuente: Ministerio del Interior — Sistema de Gestión de Seguridad Pública (SGSP).
+Geometría: shapefile oficial de seccionales policiales.
