@@ -13,7 +13,9 @@
 #
 #   Rscript scripts/02_preparar_datos_app.R
 #
-# Uso:   Rscript deploy.R      (desde la raíz de este repo)
+# Uso:   Rscript scripts/deploy.R   (SIEMPRE desde la raíz del repo:
+#        appDir = "." se resuelve contra el directorio de trabajo, no contra
+#        la ubicación de este archivo)
 # =============================================================================
 rsconnect::deployApp(
   appDir   = ".",

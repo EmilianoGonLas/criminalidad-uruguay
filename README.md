@@ -141,7 +141,7 @@ shiny::runApp()     # desde la raíz del proyecto
 ```bash
 Rscript scripts/02_preparar_datos_app.R   # sólo si cambiaron los datos crudos
 Rscript scripts/03_gif_seccionales.R      # regenera el GIF de arriba
-Rscript deploy.R                          # publica en shinyapps.io
+Rscript scripts/deploy.R                  # publica en shinyapps.io
 ```
 
 ## Estructura
@@ -150,10 +150,10 @@ Rscript deploy.R                          # publica en shinyapps.io
 app.R                  UI + server (navbar de 4 secciones)
 global.R               carga los parquet y la geometría al iniciar
 R/                     módulos: delitos, homicidios, comparativa, seccionales
-scripts/               02 crudo → parquet · 03 GIF de portada
+scripts/               02 crudo → parquet · 03 GIF de portada · deploy
 data/app/              lo que carga y despliega la app
 data/seccionales_shp/  shapefile oficial (EPSG:32721)
-docs/img/              capturas y GIF del README
+docs/                  spec original, manifest del deploy viejo, imágenes
 qgis/                  proyecto QGIS con el shape y el KML
 ```
 
