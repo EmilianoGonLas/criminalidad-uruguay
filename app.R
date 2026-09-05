@@ -226,32 +226,28 @@ ui <- page_navbar(
     "))
   ),
 
-  # Pestaña Principal 1
+  nav_panel(
+    title = "Seccionales Policiales",
+    icon = icon("map-location-dot"),
+    mod_seccionales_ui("seccionales")
+  ),
+
   nav_panel(
     title = "Delitos Generales",
     icon = icon("chart-line"),
     mod_delitos_ui("delitos")
   ),
 
-  # Pestaña Principal 2
   nav_panel(
     title = "Homicidios Dolosos",
     icon = icon("skull-crossbones"),
     mod_homicidios_ui("homicidios")
   ),
 
-  # Pestaña Principal 3
   nav_panel(
     title = "Comparativa Departamental",
     icon = icon("map"),
     mod_comparativa_ui("comparativa")
-  ),
-
-  # Pestaña Principal 4 — el nivel geográfico más fino de la fuente
-  nav_panel(
-    title = "Seccionales Policiales",
-    icon = icon("map-location-dot"),
-    mod_seccionales_ui("seccionales")
   ),
 
   # Espacio y Footer

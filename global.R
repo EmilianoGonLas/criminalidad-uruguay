@@ -130,6 +130,21 @@ fecha_max <- max(delitos_dt$fecha, na.rm = TRUE)
 anio_max <- max(años_delitos)
 anio_incompleto <- as.integer(format(fecha_max, "%m")) < 12
 
+# --- Población, para poder hablar de tasas -----------------------------------
+# Sin denominador, un mapa departamental de delito es un mapa de dónde vive la
+# gente. La fuente del Ministerio del Interior no publica población, así que
+# sale del Censo 2023 (ver scripts/01_poblacion_censo.R).
+poblacion_dt <- data.table::fread("data/poblacion_departamento.csv")
+POBLACION_PAIS <- sum(poblacion_dt$poblacion)
+
+# El último año viene incompleto y arruina cualquier comparación anual: la
+# tasa de medio año parece una caída. Se usa el último año cerrado por defecto.
+ANIO_COMPLETO <- if (anio_incompleto) anio_max - 1L else anio_max
+
+# Homicidios como un delito más, para poder compararlos con el resto.
+ETIQUETA_HOMICIDIOS <- "HOMICIDIOS"
+delitos_comparables <- c(delito_tipos, ETIQUETA_HOMICIDIOS)
+
 # ============================================================
 # AYUDAS PARA PANTALLAS ANGOSTAS
 # ============================================================
@@ -172,6 +187,18 @@ colores_delito <- c(
   "HURTO" = "#1d4ed8", "RAPIÑA" = "#2563eb",
   "VIOLENCIA DOMÉSTICA" = "#3b82f6", "LESIONES" = "#60a5fa",
   "ABIGEATO" = "#93c5fd"
+)
+
+# La paleta de arriba es monocroma a proposito: sirve para lineas con leyenda.
+# Para un apilado al 100% no sirve, porque cinco tonos del mismo azul no se
+# distinguen entre si. Esta tiene un tono por delito y aguanta el fondo oscuro.
+colores_delito_categorico <- c(
+  "HURTO"               = "#3b82f6",
+  "RAPIÑA"              = "#f59e0b",
+  "VIOLENCIA DOMÉSTICA" = "#a78bfa",
+  "LESIONES"            = "#34d399",
+  "ABIGEATO"            = "#f472b6",
+  "HOMICIDIOS"          = "#ef4444"
 )
 
 plot_bg_color   <- "transparent"
