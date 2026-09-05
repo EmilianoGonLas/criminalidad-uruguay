@@ -120,14 +120,18 @@ mod_delitos_server <- function(id) {
       d <- datos_filtrados()
       if (nrow(d) == 0) return("—")
       tbl <- d[, .N, by = DELITO][order(-N)]
-      tbl$DELITO[1]
+      # as.character(): la columna es factor y renderText imprimiria
+      # el codigo entero del nivel en vez de la etiqueta.
+      as.character(tbl$DELITO[1])
     })
 
     output$kpi_depto <- renderText({
       d <- datos_filtrados()
       if (nrow(d) == 0) return("—")
       tbl <- d[, .N, by = DEPTO][order(-N)]
-      tbl$DEPTO[1]
+      # as.character(): la columna es factor y renderText imprimiria
+      # el codigo entero del nivel en vez de la etiqueta.
+      as.character(tbl$DEPTO[1])
     })
 
     output$kpi_tentativas <- renderText({

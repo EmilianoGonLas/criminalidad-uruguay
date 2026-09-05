@@ -94,7 +94,7 @@ mod_comparativa_server <- function(id) {
       )
 
       leaflet(map_data) %>%
-        addProviderTiles(providers$CartoDB.DarkMatter) %>%
+        agregar_mapa_base() %>%
         setView(lng = -56.0, lat = -33.0, zoom = 6) %>%
         addPolygons(
           fillColor = ~pal(VALOR),

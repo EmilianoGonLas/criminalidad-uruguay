@@ -121,7 +121,7 @@ mod_seccionales_server <- function(id) {
       }
 
       leaflet(geo) |>
-        addProviderTiles(providers$CartoDB.DarkMatter) |>
+        agregar_mapa_base() |>
         addPolygons(
           fillColor = ~pal(eventos), fillOpacity = 0.75,
           weight = 0.7, color = "#64748b", opacity = 0.9,
