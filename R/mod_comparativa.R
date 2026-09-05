@@ -51,7 +51,8 @@ mod_comparativa_ui <- function(id) {
       nav_panel("Evolución", icon = icon("chart-line"),
                 div(style = "font-size:0.82rem; color:#94a3b8; margin-bottom:10px;",
                     "Cada línea es un departamento; la blanca gruesa es el total ",
-                    "del país."),
+                    "del país. Esta vista muestra siempre la serie completa: ",
+                    "el período elegido en el panel queda sombreado."),
                 withSpinner(plotlyOutput(ns("evolucion"), height = "580px"), type = 4)),
 
       nav_panel("Composición", icon = icon("layer-group"),
@@ -203,29 +204,61 @@ mod_comparativa_server <- function(id, ancho = reactive(NULL)) {
     })
 
     # --- evolución ----------------------------------------------------------
+    # Esta vista NO usa el rango del período para el eje X: con el valor por
+    # defecto (un solo año) cada departamento tenía un único punto y una línea
+    # de un punto no dibuja nada, así que el panel salía vacío. Muestra
+    # siempre la serie completa y sombrea el período elegido.
+    conteos_todos <- reactive({
+      req(input$delitos)
+      base <- data.table(depto = character(), anio = integer(), n = integer())
+      denuncias <- setdiff(input$delitos, ETIQUETA_HOMICIDIOS)
+      if (length(denuncias)) {
+        base <- rbind(base, delitos_dt[
+          ANIO <= ANIO_COMPLETO & DELITO %in% denuncias,
+          .(n = .N), by = .(depto = as.character(DEPTO), anio = ANIO)])
+      }
+      if (ETIQUETA_HOMICIDIOS %in% input$delitos) {
+        base <- rbind(base, homicidios_dt[
+          ANIO <= ANIO_COMPLETO,
+          .(n = .N), by = .(depto = as.character(DEPTO), anio = ANIO)])
+      }
+      base[, .(n = sum(n)), by = .(depto, anio)]
+    })
+
     output$evolucion <- renderPlotly({
-      d <- conteos()[, .(n = sum(n)), by = .(depto, anio)]
+      d <- conteos_todos()
       if (nrow(d) == 0) return(plotly_empty())
       d <- merge(d, poblacion_dt, by = "depto")
       d[, valor := if (es_tasa()) 1e5 * n / poblacion else n]
+      setorder(d, depto, anio)
 
-      pais <- conteos()[, .(n = sum(n)), by = anio]
+      pais <- d[, .(n = sum(n)), by = anio][order(anio)]
       pais[, valor := if (es_tasa()) 1e5 * n / POBLACION_PAIS else n]
 
       plot_ly() |>
-        add_lines(data = d, x = ~anio, y = ~valor, color = ~depto,
+        add_trace(data = d, x = ~anio, y = ~valor, color = ~depto,
                   colors = viridisLite::viridis(19, option = "turbo"),
-                  line = list(width = 1.6), opacity = 0.85,
+                  type = "scatter", mode = "lines+markers",
+                  line = list(width = 1.6), marker = list(size = 4), opacity = 0.85,
                   hovertemplate = "%{x}<br>%{y:,.1f}<extra>%{fullData.name}</extra>") |>
-        add_lines(data = pais, x = ~anio, y = ~valor, name = "TOTAL PAÍS",
+        add_trace(data = pais, x = ~anio, y = ~valor, name = "TOTAL PAÍS",
+                  type = "scatter", mode = "lines+markers",
                   line = list(color = "#f8fafc", width = 3.5),
+                  marker = list(color = "#f8fafc", size = 6),
                   hovertemplate = "%{x}<br>%{y:,.1f}<extra>Total país</extra>") |>
-        layout(title = list(text = paste(nombre_medida(), "por año"),
+        layout(title = list(text = paste0(nombre_medida(), " por año · 2013–", ANIO_COMPLETO),
                             x = 0, xanchor = "left"),
                xaxis = list(title = "", gridcolor = grid_color_dark, dtick = 1),
                yaxis = list(title = nombre_medida(), separatethousands = TRUE,
                             gridcolor = grid_color_dark),
                legend = list(font = list(size = 10)),
+               # El período elegido en el panel se marca acá, para que se vea
+               # que el filtro existe aunque esta vista muestre todo.
+               shapes = list(list(type = "rect", xref = "x", yref = "paper",
+                                  x0 = input$periodo[1] - 0.5, x1 = input$periodo[2] + 0.5,
+                                  y0 = 0, y1 = 1, layer = "below",
+                                  fillcolor = "rgba(148,163,184,0.12)",
+                                  line = list(width = 0))),
                plot_bgcolor = plot_bg_color, paper_bgcolor = paper_bg_color,
                font = list(color = font_color_dark))
     })
