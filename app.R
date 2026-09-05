@@ -19,7 +19,10 @@ source("R/mod_seccionales.R", encoding = "UTF-8")
 ui <- page_navbar(
   title = tags$span(
     tags$i(class = "fas fa-shield-alt", style = "margin-right: 8px;"),
-    "Estadísticas de Criminalidad — Uruguay (AECA)"
+    # El título largo medía 454 px en una pantalla de 390 y empujaba la
+    # página entera 164 px hacia la derecha. En celular se usa el corto.
+    tags$span(class = "titulo-largo", "Estadísticas de Criminalidad — Uruguay (AECA)"),
+    tags$span(class = "titulo-corto", "Criminalidad · Uruguay")
   ),
   theme = bs_theme(
     version = 5,
@@ -89,6 +92,137 @@ ui <- page_navbar(
       table.dataTable tbody tr { background-color: transparent !important; }
       .dataTables_wrapper .dataTables_length, .dataTables_wrapper .dataTables_filter, .dataTables_wrapper .dataTables_info, .dataTables_wrapper .dataTables_processing, .dataTables_wrapper .dataTables_paginate { color: #94a3b8 !important; font-size: 0.85rem; }
       table.dataTable { font-size: 0.85rem; }
+
+      /* ---------- Pantallas angostas ---------- */
+      .titulo-corto { display: none; }
+      .navbar-brand, .navbar-brand > span { white-space: normal; }
+
+      @media (max-width: 767.98px) {
+        .titulo-largo { display: none; }
+        .titulo-corto { display: inline; }
+        .navbar { padding: 0.5rem 0.75rem; }
+
+        /* Las sub-pestañas se apilaban: seis ocupaban ~380 px, casi media
+           pantalla, antes de mostrar nada. Ahora se deslizan de costado. */
+        .nav-underline, .navset-card-underline .nav, .card .nav-tabs {
+          flex-wrap: nowrap;
+          overflow-x: auto;
+          overflow-y: hidden;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+        }
+        .nav-underline::-webkit-scrollbar { display: none; }
+        .nav-underline .nav-link, .navset-card-underline .nav .nav-link {
+          white-space: nowrap;
+          padding-left: 0.6rem;
+          padding-right: 0.6rem;
+        }
+
+        /* Objetivos táctiles: mínimo 44 px. */
+        .navbar-toggler { min-width: 44px; min-height: 44px; padding: 0.4rem 0.6rem; }
+        .bslib-sidebar-layout > .collapse-toggle {
+          width: 44px !important; height: 44px !important;
+        }
+        .leaflet-control-zoom a {
+          width: 40px !important; height: 40px !important; line-height: 40px !important;
+          font-size: 1.3rem !important;
+        }
+
+        /* Mapas y gráficos con alto fijo ocupaban más de media pantalla. */
+        .leaflet-container { height: 62vh !important; min-height: 320px; }
+        .html-widget.plotly, .plotly.html-widget { height: 60vh !important; min-height: 300px; }
+
+        /* La leyenda tapaba el 80% del ancho del mapa, justo sobre Montevideo. */
+        .leaflet-control.info.legend, .leaflet-bottom.leaflet-right .info {
+          font-size: 0.68rem; max-width: 44vw; padding: 5px 7px; line-height: 1.15;
+        }
+        .leaflet-control.info.legend i { width: 12px; height: 12px; }
+
+        /* La barra de herramientas de plotly se montaba sobre el título. */
+        .modebar { display: none !important; }
+
+        .value-box { padding: 8px 12px; }
+        .value-box-value { font-size: 1.35rem !important; }
+
+        /* El título de la tarjeta le robaba la mitad del ancho a las
+           sub-pestañas, que ya vienen justas. */
+        .card-header.bslib-navs-card-title > span:not([class]) { display: none; }
+        .card-header.bslib-navs-card-title { padding: 0.25rem 0.5rem; }
+
+        /* El botón de filtros era una flecha sin texto: nadie adivina que
+           ahí están los controles. */
+        .bslib-sidebar-layout > .collapse-toggle::after {
+          content: 'Filtros';
+          font-size: 0.72rem;
+          color: #94a3b8;
+          display: block;
+          margin-top: 1px;
+          letter-spacing: 0.02em;
+        }
+        .bslib-sidebar-layout > .collapse-toggle {
+          width: auto !important;
+          min-width: 44px;
+          height: 44px !important;
+          display: flex !important;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 0 6px;
+        }
+      }
+    ")),
+    tags$script(HTML("
+      // bslib emite el navbar con markup de Bootstrap 3 (.navbar-toggle, y el
+      // navbar sin navbar-expand-*), pero el tema es Bootstrap 5, que estiliza
+      // .navbar-toggler. Resultado en celular: el botón queda invisible y los
+      // cuatro tabs miden 0x0, o sea que no se puede navegar a ninguna sección.
+      function arreglarNavbar() {
+        var nav = document.querySelector('.navbar');
+        if (nav && !/navbar-expand/.test(nav.className)) {
+          nav.classList.add('navbar-expand-lg');
+        }
+        var t = document.querySelector('.navbar-toggle, .navbar-toggler');
+        if (t) {
+          t.classList.remove('navbar-toggle');
+          t.classList.add('navbar-toggler');
+          t.setAttribute('aria-label', 'Abrir el menú de secciones');
+          if (!t.querySelector('.navbar-toggler-icon')) {
+            var i = document.createElement('span');
+            i.className = 'navbar-toggler-icon';
+            t.appendChild(i);
+          }
+        }
+        // El botón que abre los filtros no decía qué hacía.
+        document.querySelectorAll('.bslib-sidebar-layout > .collapse-toggle')
+          .forEach(function (b) {
+            b.setAttribute('aria-label', 'Mostrar u ocultar los filtros');
+            b.setAttribute('title', 'Filtros');
+          });
+        // Elegir una sección cierra el menú desplegado.
+        document.querySelectorAll('.navbar .nav-link').forEach(function (a) {
+          a.addEventListener('click', function () {
+            var c = document.querySelector('.navbar-collapse.show');
+            if (c && window.bootstrap) {
+              bootstrap.Collapse.getOrCreateInstance(c).hide();
+            }
+          });
+        });
+      }
+
+      // El ancho llega al servidor para calcular márgenes y cuántas barras
+      // mostrar. Se manda al conectar y en cada resize, con freno.
+      function mandarAncho() {
+        if (window.Shiny && Shiny.setInputValue) {
+          Shiny.setInputValue('ancho_px', window.innerWidth, {priority: 'event'});
+        }
+      }
+      $(document).on('shiny:connected', function () { arreglarNavbar(); mandarAncho(); });
+      document.addEventListener('DOMContentLoaded', arreglarNavbar);
+      var frenoResize;
+      window.addEventListener('resize', function () {
+        clearTimeout(frenoResize);
+        frenoResize = setTimeout(mandarAncho, 250);
+      });
     "))
   ),
 
@@ -137,10 +271,12 @@ ui <- page_navbar(
 server <- function(input, output, session) {
   
   # Inicializar cada módulo con su namespace correspondiente
-  mod_delitos_server("delitos")
-  mod_homicidios_server("homicidios")
-  mod_comparativa_server("comparativa")
-  mod_seccionales_server("seccionales")
+  ancho <- reactive(input$ancho_px)
+
+  mod_delitos_server("delitos", ancho)
+  mod_homicidios_server("homicidios", ancho)
+  mod_comparativa_server("comparativa", ancho)
+  mod_seccionales_server("seccionales", ancho)
   
 }
 

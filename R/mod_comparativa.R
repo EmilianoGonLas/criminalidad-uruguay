@@ -52,7 +52,7 @@ mod_comparativa_ui <- function(id) {
   )
 }
 
-mod_comparativa_server <- function(id) {
+mod_comparativa_server <- function(id, ancho = reactive(NULL)) {
   moduleServer(id, function(input, output, session) {
     
     datos_comp <- reactive({
@@ -138,7 +138,7 @@ mod_comparativa_server <- function(id) {
         layout(
           xaxis = list(title = input$indicador_comp, separatethousands = TRUE, gridcolor = grid_color_dark, zerolinecolor = grid_color_dark),
           yaxis = list(title = "", gridcolor = "transparent", zerolinecolor = "transparent"),
-          margin = list(l = 130),
+          margin = list(l = margen_eje(ancho(), 130)),
           title = paste("Ranking por", input$indicador_comp),
           plot_bgcolor = plot_bg_color,
           paper_bgcolor = paper_bg_color,

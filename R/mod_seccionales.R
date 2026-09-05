@@ -77,7 +77,7 @@ mod_seccionales_ui <- function(id) {
   )
 }
 
-mod_seccionales_server <- function(id) {
+mod_seccionales_server <- function(id, ancho = reactive(NULL)) {
   moduleServer(id, function(input, output, session) {
 
     # --- filtro común -------------------------------------------------------
@@ -139,19 +139,28 @@ mod_seccionales_server <- function(id) {
 
     # --- ranking ------------------------------------------------------------
     output$ranking <- renderPlotly({
-      d <- head(por_seccional(), 30)
+      # En celular, 320 px de margen sobre un gráfico de 308 dejaban 43 px de
+      # área de dibujo: las barras quedaban invisibles contra el borde. Acá se
+      # abrevian las etiquetas y el margen se calcula sobre el ancho real.
+      angosto <- es_angosto(ancho())
+      d <- head(por_seccional(), top_n_barras(ancho()))
       if (nrow(d) == 0) return(plotly_empty())
       d <- d[order(eventos)]
+      if (angosto) d[, etiqueta := etiqueta_corta(etiqueta)]
       d[, etiqueta := factor(etiqueta, levels = etiqueta)]
 
       plot_ly(d, y = ~etiqueta, x = ~eventos, type = "bar", orientation = "h",
               marker = list(color = "#3b82f6"),
               hovertemplate = "<b>%{y}</b><br>%{x:,.0f} denuncias<extra></extra>") |>
-        layout(title = paste("30 seccionales con más denuncias —", titulo()),
-               xaxis = list(title = "Denuncias", separatethousands = TRUE,
+        layout(title = list(
+                 text = if (angosto) paste("Top", nrow(d))
+                        else paste(nrow(d), "seccionales con más denuncias —", titulo()),
+                 x = 0, xanchor = "left", xref = "paper"),
+               xaxis = list(title = paste("Denuncias ·", titulo()),
+                            separatethousands = TRUE,
                             gridcolor = grid_color_dark, zerolinecolor = grid_color_dark),
                yaxis = list(title = "", gridcolor = "transparent"),
-               margin = list(l = 320),
+               margin = list(l = margen_eje(ancho(), 320)),
                plot_bgcolor = plot_bg_color, paper_bgcolor = paper_bg_color,
                font = list(color = font_color_dark))
     })
@@ -192,7 +201,10 @@ mod_seccionales_server <- function(id) {
       plot_ly(x = names(m)[-1], y = m$DIA_SEMANA,
               z = as.matrix(m[, -1]), type = "heatmap", colors = "YlOrRd",
               hovertemplate = "%{y} %{x}:00<br>%{z:,.0f} denuncias<extra></extra>") |>
-        layout(title = paste("Rapiña, lesiones y violencia doméstica —", titulo()),
+        layout(title = list(
+                 text = if (es_angosto(ancho())) titulo()
+                        else paste("Rapiña, lesiones y violencia doméstica —", titulo()),
+                 x = 0, xanchor = "left", xref = "paper"),
                xaxis = list(title = "Hora del día", dtick = 2),
                yaxis = list(title = "", autorange = "reversed"),
                plot_bgcolor = plot_bg_color, paper_bgcolor = paper_bg_color,
@@ -208,17 +220,20 @@ mod_seccionales_server <- function(id) {
           paper_bgcolor = paper_bg_color, font = list(color = font_color_dark)))
       }
       d <- d[, .(eventos = .N), by = .(barrio = as.character(barrio))][order(-eventos)]
-      d <- head(d, 30)[order(eventos)]
+      d <- head(d, top_n_barras(ancho()))[order(eventos)]
       d[, barrio := factor(barrio, levels = barrio)]
 
       plot_ly(d, y = ~barrio, x = ~eventos, type = "bar", orientation = "h",
               marker = list(color = "#60a5fa"),
               hovertemplate = "<b>%{y}</b><br>%{x:,.0f} denuncias<extra></extra>") |>
-        layout(title = paste("30 barrios con más denuncias —", titulo()),
-               xaxis = list(title = "Denuncias", separatethousands = TRUE,
-                            gridcolor = grid_color_dark),
+        layout(title = list(
+                 text = if (es_angosto(ancho())) paste("Top", nrow(d))
+                        else paste(nrow(d), "barrios con más denuncias —", titulo()),
+                 x = 0, xanchor = "left", xref = "paper"),
+               xaxis = list(title = paste("Denuncias ·", titulo()),
+                            separatethousands = TRUE, gridcolor = grid_color_dark),
                yaxis = list(title = "", gridcolor = "transparent"),
-               margin = list(l = 200),
+               margin = list(l = margen_eje(ancho(), 200)),
                plot_bgcolor = plot_bg_color, paper_bgcolor = paper_bg_color,
                font = list(color = font_color_dark))
     })

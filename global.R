@@ -131,6 +131,44 @@ fecha_max <- max(delitos_dt$fecha, na.rm = TRUE)
 anio_max <- max(años_delitos)
 anio_incompleto <- as.integer(format(fecha_max, "%m")) < 12
 
+# ============================================================
+# AYUDAS PARA PANTALLAS ANGOSTAS
+# ============================================================
+# El ancho del navegador llega como input global `ancho_px` (lo manda un
+# script en app.R) y se le pasa a cada módulo. En celular un margen de 320 px
+# sobre un gráfico de 308 px dejaba 43 px de área de dibujo: las barras
+# desaparecían contra el borde.
+
+BREAKPOINT_MOVIL <- 768
+
+es_angosto <- function(ancho) {
+  !is.null(ancho) && !is.na(ancho) && ancho < BREAKPOINT_MOVIL
+}
+
+# Nunca más del 42% del ancho para el eje: siempre queda algo para dibujar.
+margen_eje <- function(ancho, deseado) {
+  if (is.null(ancho) || is.na(ancho)) return(deseado)
+  max(55, min(deseado, floor(ancho * 0.42)))
+}
+
+# En celular no entra "MONTEVIDEO — Seccional 19 (CENTRO)".
+SIGLAS_DEPTO <- c("MONTEVIDEO" = "MVD", "CANELONES" = "CAN", "MALDONADO" = "MAL",
+                  "TACUAREMBO" = "TAC", "PAYSANDU" = "PAY", "CERRO LARGO" = "C.LARGO",
+                  "RIO NEGRO" = "R.NEGRO", "TREINTA Y TRES" = "33",
+                  "SAN JOSE" = "S.JOSE", "LAVALLEJA" = "LAV", "DURAZNO" = "DUR")
+
+etiqueta_corta <- function(x) {
+  x <- sub(" \\(.*\\)$", "", x)                 # se cae el nombre entre parentesis
+  x <- sub(" — Seccional ", " \u00b7 S", x)
+  for (d in names(SIGLAS_DEPTO)) {
+    x <- sub(paste0("^", d, " \u00b7 "), paste0(SIGLAS_DEPTO[[d]], " \u00b7 "), x)
+  }
+  x
+}
+
+# Menos barras en pantalla chica: 30 obligan a un scroll eterno.
+top_n_barras <- function(ancho) if (es_angosto(ancho)) 15L else 30L
+
 colores_delito <- c(
   "HURTO" = "#1d4ed8", "RAPIÑA" = "#2563eb",
   "VIOLENCIA DOMÉSTICA" = "#3b82f6", "LESIONES" = "#60a5fa",

@@ -91,7 +91,7 @@ mod_delitos_ui <- function(id) {
   )
 }
 
-mod_delitos_server <- function(id) {
+mod_delitos_server <- function(id, ancho = reactive(NULL)) {
   moduleServer(id, function(input, output, session) {
     
     # --- Datos Reactivos ---
@@ -191,7 +191,7 @@ mod_delitos_server <- function(id) {
         layout(
           xaxis = list(title = "Cantidad de eventos", separatethousands = TRUE, gridcolor = grid_color_dark, zerolinecolor = grid_color_dark),
           yaxis = list(title = "", gridcolor = "transparent", zerolinecolor = "transparent"),
-          margin = list(l = 130),
+          margin = list(l = margen_eje(ancho(), 130)),
           plot_bgcolor = plot_bg_color,
           paper_bgcolor = paper_bg_color,
           font = list(color = font_color_dark)
