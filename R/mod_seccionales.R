@@ -213,7 +213,11 @@ mod_seccionales_server <- function(id, ancho = reactive(NULL)) {
 
     # --- barrios de Montevideo ----------------------------------------------
     output$barrios <- renderPlotly({
-      d <- eventos()[!is.na(barrio) & trimws(as.character(barrio)) != ""]
+      # "NO CORRESPONDE" es el centinela de la fuente para todo lo que no es
+      # Montevideo: 1,3 M de registros. Se filtra tambien aca por si los datos
+      # vienen de un parquet armado antes de limpiarlo.
+      d <- eventos()[!is.na(barrio) & trimws(as.character(barrio)) != "" &
+                       as.character(barrio) != "NO CORRESPONDE"]
       if (nrow(d) == 0) {
         return(plotly_empty() |> layout(
           title = "Sin datos de barrio para la selección (sólo existe en Montevideo)",

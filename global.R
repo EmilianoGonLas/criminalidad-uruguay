@@ -71,23 +71,22 @@ uruguay_sf$name <- uruguay_sf$depto
 # API key en TODOS sus hosts (basemaps.carto.com, basemaps.cartocdn.com y el
 # viejo de Fastly): las tiles vuelven con un "API KEY REQUIRED" estampado
 # encima. Esri Dark Gray Canvas es gratuito, no pide key y combina con el tema
-# oscuro. Viene partido en dos: el fondo y las etiquetas, que van en un pane
-# aparte para quedar por encima de los poligonos.
-ESRI <- "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas"
-ESRI_FONDO      <- paste0(ESRI, "/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}")
-ESRI_ETIQUETAS  <- paste0(ESRI, "/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}")
+# oscuro.
+#
+# Va solo el fondo, sin la capa de etiquetas: los nombres de departamento
+# quedaban impresos encima de los poligonos y competian con el dato, que es
+# justamente el color de cada seccional. Cada poligono ya dice su nombre al
+# tocarlo.
+ESRI_FONDO <- paste0("https://services.arcgisonline.com/ArcGIS/rest/services",
+                     "/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}")
 ESRI_ATTR <- paste(
   'Tiles &copy; <a href="https://www.esri.com/">Esri</a>',
   '&mdash; Esri, DeLorme, NAVTEQ'
 )
 
 agregar_mapa_base <- function(mapa) {
-  mapa |>
-    leaflet::addTiles(urlTemplate = ESRI_FONDO, attribution = ESRI_ATTR,
-                      options = leaflet::tileOptions(maxZoom = 16)) |>
-    leaflet::addMapPane("etiquetas", zIndex = 450) |>
-    leaflet::addTiles(urlTemplate = ESRI_ETIQUETAS,
-                      options = leaflet::pathOptions(pane = "etiquetas"))
+  leaflet::addTiles(mapa, urlTemplate = ESRI_FONDO, attribution = ESRI_ATTR,
+                    options = leaflet::tileOptions(maxZoom = 16))
 }
 
 normalize_depto <- function(x) {

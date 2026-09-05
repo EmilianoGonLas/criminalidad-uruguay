@@ -68,13 +68,18 @@ ev <- d |>
     # "SIN DATO" -> NA a proposito: el hurto no registra hora en el 88% de los
     # casos y el abigeato en el 100%. Rapina, lesiones y violencia domestica
     # la tienen siempre; el heatmap dia x hora solo aplica a esas tres.
-    hora   = suppressWarnings(as.integer(HORA))
+    hora   = suppressWarnings(as.integer(HORA)),
+    # BARRIO_MONTEVIDEO trae "NO CORRESPONDE" en los 1,3 M de denuncias que
+    # no son de Montevideo. No es un barrio: es la marca de "aca no aplica".
+    # Si se deja, encabeza cualquier ranking de barrios y aplasta al resto.
+    barrio_limpio = ifelse(BARRIO_MONTEVIDEO == "NO CORRESPONDE",
+                           NA_character_, BARRIO_MONTEVIDEO)
   ) |>
   transmute(
     fecha, anio = as.integer(format(fecha, "%Y")),
     delito = as.factor(DELITO), tentativa = as.factor(TENTATIVA),
     depto = as.factor(depto), sec_id = as.factor(sec_id),
-    jurisdiccion = as.factor(JURISDICCION), barrio = as.factor(BARRIO_MONTEVIDEO),
+    jurisdiccion = as.factor(JURISDICCION), barrio = as.factor(barrio_limpio),
     dia_semana = as.factor(DIA_SEMANA), hora,
     vict_rap = as.factor(VICT_RAP), vict_hur = as.factor(VICT_HUR)
   )
