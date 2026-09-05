@@ -23,6 +23,7 @@ rsconnect::deployApp(
     "app.R", "global.R",
     "R/mod_delitos.R", "R/mod_homicidios.R", "R/mod_comparativa.R",
     "R/mod_seccionales.R",
+    "data/poblacion_departamento.csv",
     "data/app/eventos.parquet",
     "data/app/homicidios.parquet",
     "data/app/seccionales.rds",

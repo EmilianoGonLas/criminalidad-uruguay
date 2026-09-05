@@ -12,6 +12,9 @@ rsconnect/
 # otros-delitos.csv (376 MB) no entra en GitHub. Se baja del catálogo de datos
 # abiertos y se convierte con scripts/02_preparar_datos_app.R. Ver README.
 data/*.csv
+# ...menos la poblacion por departamento: son 19 filas y la app no arranca
+# sin ella (es el denominador de todas las tasas).
+!data/poblacion_departamento.csv
 
 # Los derivados de data/app/ (~20 MB) SÍ se versionan: son lo que despliega
 # la app y lo que la hace reproducible sin bajar 376 MB.
