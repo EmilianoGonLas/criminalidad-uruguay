@@ -112,10 +112,6 @@ hora, seccional, barrio— y el bundle del deploy baja a ~20 MB.
 | Seccionales | 9,2 MB (shapefile) | 1,10 MB (simplificado a 25 m) |
 | Departamentos | — | 1,37 MB (disueltos de las seccionales) |
 
-En memoria son unos 150 MB, holgado para el plan de shinyapps.io. Los
-departamentos se disuelven del propio shapefile de seccionales, así la app no
-depende de `rnaturalearth` — `rnaturalearthhires` no está en CRAN y era un riesgo
-de deploy.
 
 El mapa base es **Esri Dark Gray Canvas**, no CARTO: CARTO pasó a exigir API key
 en todos sus hosts y devolvía las tiles con un `API KEY REQUIRED` estampado
